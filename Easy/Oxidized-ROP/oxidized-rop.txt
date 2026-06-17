@@ -1,0 +1,395 @@
+Oxidized
+ROP
+17th July 2023 / Document No. DYY.102.213
+Prepared By: 131LL
+Challenge Author(s): christoss
+Difficulty: Easy
+Classification: Official
+
+Synopsis
+Oxidized ROP is an easy challenge, featuring a rust binary with a buffer overflow vulnerability,
+allowing the attacker to change a variable's value and ultimately gain code execution.
+
+Skills Required
+Basic debugging skills
+
+Skills Learned
+Exploiting Rust binaries, utilizing buffer overflows
+
+Enumeration
+Protections
+Running the file and checksec commands to get an idea of what we are working with:
+
+Looking at the output, we see there's no stack canary in place, and PIE is enabled.
+
+Program Interface
+Running the binary, this is what we see:
+
+Two options are available, Complete Survey and Config Panel .
+The Complete Survey option prompts the user for a statement, up to 200 characters.
+The Config Panel option on the other hand seems to be disabled.
+
+Reading the source code
+
+⛏️
+
+The challenge provides the Rust source code for the binary:
+use std::io::{self, Write};
+const INPUT_SIZE: usize = 200;
+const PIN_ENTRY_ENABLED: bool = false;
+struct Feedback {
+statement: [u8; INPUT_SIZE],
+submitted: bool,
+}
+enum MenuOption {
+Survey,
+ConfigPanel,
+Exit,
+}
+impl MenuOption {
+fn from_int(n: u32) -> Option<MenuOption> {
+match n {
+1 => Some(MenuOption::Survey),
+2 => Some(MenuOption::ConfigPanel),
+3 => Some(MenuOption::Exit),
+_ => None,
+}
+}
+}
+fn print_banner() {
+println!("-------------------------------------------------------------------------");
+println!("
+_____
+
+______
+
+_______ _____ _____ ____________ _____
+
+____
+
+");
+
+println!(" / __ \\ \\ / /_
+__ \\|
+
+_____
+
+_|
+
+__ \\_
+
+| \\ V /
+
+| | | |
+
+| || |
+
+| |> <
+
+| | | |
+
+| || |
+
+_|___
+
+/
+
+____|
+
+__ \\
+
+|
+
+__ \\ /
+
+__ \\ ");
+
+println!("| |
+
+/ /| |__
+
+| |
+
+| | | |__) | |
+
+|
+
+| | |
+
+| |
+
+| |__) |");
+println!("| |
+
+/ / |
+
+__| | |
+
+_
+
+/| |
+
+___/ ");
+println!("| |__| / . \\ _| |_| |__| || |_ / /__| |____| |__| | | | \\ \\|
+|__| | |
+
+");
+
+println!(" \\____/_/ \\_\\_____|_____/_____/_____|______|_____/
+\\_\\\\____/|_|
+
+|_|
+
+");
+
+println!("
+");
+println!("Rapid Oxidization Protection -------------------------------- by
+christoss");
+}
+fn save_data(dest: &mut [u8], src: &String) {
+if src.chars().count() > INPUT_SIZE {
+println!("Oups, something went wrong... Please try again later.");
+
+std::process::exit(1);
+}
+let mut dest_ptr = dest.as_mut_ptr() as *mut char;
+unsafe {
+for c in src.chars() {
+dest_ptr.write(c);
+dest_ptr = dest_ptr.offset(1);
+}
+}
+}
+fn read_user_input() -> String {
+let mut s: String = String::new();
+io::stdin().read_line(&mut s).unwrap();
+s.trim_end_matches("\n").to_string()
+}
+fn get_option() -> Option<MenuOption> {
+let mut input = String::new();
+io::stdin().read_line(&mut input).unwrap();
+MenuOption::from_int(input.trim().parse().expect("Invalid Option"))
+}
+fn present_survey(feedback: &mut Feedback) {
+if feedback.submitted {
+println!("Survey with this ID already exists.");
+return;
+}
+println!("\n\nHello, our workshop is experiencing rapid oxidization. As we
+value health and");
+println!("safety at the workspace above all we hired a ROP (Rapid Oxidization
+Protection)
+
+");
+
+println!("service to ensure the structural safety of the workshop. They would
+like a quick ");
+println!("statement about the state of the workshop by each member of the
+team. This is
+
+");
+
+println!("completely confidential. Each response will be associated with a
+random number
+
+");
+
+println!("in no way related to you.
+\n");
+print!("Statement (max 200 characters): ");
+io::stdout().flush().unwrap();
+let input_buffer = read_user_input();
+save_data(&mut feedback.statement, &input_buffer);
+println!("\n{}", "-".repeat(74));
+println!("Thanks for your statement! We will try to resolve the issues
+ASAP!\nPlease now exit the program.");
+println!("{}", "-".repeat(74));
+
+feedback.submitted = true;
+}
+fn present_config_panel(pin: &u32) {
+use std::process::{self, Stdio};
+// the pin strength isn't important since pin input is disabled
+if *pin != 123456 {
+println!("Invalid Pin. This incident will be reported.");
+return;
+}
+process::Command::new("/bin/sh")
+.stdin(Stdio::inherit())
+.stdout(Stdio::inherit())
+.output()
+.unwrap();
+}
+fn print_menu() {
+println!("\n\nWelcome to the Rapid Oxidization Protection Survey Portal!
+");
+println!("(If you have been sent by someone to complete the survey, select
+option 1)\n");
+println!("1. Complete Survey");
+println!("2. Config Panel");
+println!("3. Exit");
+print!("Selection: ");
+io::stdout().flush().unwrap();
+}
+fn main() {
+print_banner();
+let mut feedback = Feedback {
+statement: [0_u8; INPUT_SIZE],
+submitted: false,
+};
+let mut login_pin: u32 = 0x11223344;
+loop {
+print_menu();
+match get_option().expect("Invalid Option") {
+MenuOption::Survey => present_survey(&mut feedback),
+MenuOption::ConfigPanel => {
+if PIN_ENTRY_ENABLED {
+let mut input = String::new();
+print!("Enter configuration PIN: ");
+io::stdout().flush().unwrap();
+io::stdin().read_line(&mut input).unwrap();
+login_pin = input.parse().expect("Invalid Pin");
+} else {
+println!("\nConfig panel login has been disabled by the
+administrator.");
+}
+
+present_config_panel(&login_pin);
+}
+MenuOption::Exit => break,
+}
+}
+}
+
+Looking at main() , a Feedback struct is initialized, containing a statement field, which we see is
+a fixed-size array of 200 unsigned 8-bit integers. The submitted field is initialized as false.
+After that, a 32-bit unsigned int login_pin is initialized with a value of 0x11223344. Notice the
+keyword mut is used, which means the variable is mutable and thus can be altered.
+A loop follows, printing out the menu and running the appropriate code depending on our input.
+Let's start with the Complete Survey option:
+fn present_survey(feedback: &mut Feedback) {
+if feedback.submitted {
+println!("Survey with this ID already exists.");
+return;
+}
+println!("\n\nHello, our workshop is experiencing rapid oxidization. As we
+value health and");
+println!("safety at the workspace above all we hired a ROP (Rapid Oxidization
+Protection)
+
+");
+
+println!("service to ensure the structural safety of the workshop. They would
+like a quick ");
+println!("statement about the state of the workshop by each member of the
+team. This is
+
+");
+
+println!("completely confidential. Each response will be associated with a
+random number
+
+");
+
+println!("in no way related to you.
+\n");
+print!("Statement (max 200 characters): ");
+io::stdout().flush().unwrap();
+let input_buffer = read_user_input();
+save_data(&mut feedback.statement, &input_buffer);
+println!("\n{}", "-".repeat(74));
+println!("Thanks for your statement! We will try to resolve the issues
+ASAP!\nPlease now exit the program.");
+println!("{}", "-".repeat(74));
+feedback.submitted = true;
+}
+
+It first checks if we have already submitted a survey, in which case it immetiately returns. If not, it
+prompts us for a statement up to 200 characters. read_user_input() is called, and then
+save_data() .
+
+read_user_input() :
+
+fn read_user_input() -> String {
+let mut s: String = String::new();
+io::stdin().read_line(&mut s).unwrap();
+s.trim_end_matches("\n").to_string()
+}
+
+In Rust, the last expression of a function is implicitly used as the return value of that function. So,
+read_user_input() returns a buffer containing our input, which has been trimmed of the
+
+newline characters at the end.
+save_data() :
+
+fn save_data(dest: &mut [u8], src: &String) {
+if src.chars().count() > INPUT_SIZE {
+println!("Oups, something went wrong... Please try again later.");
+std::process::exit(1);
+}
+let mut dest_ptr = dest.as_mut_ptr() as *mut char;
+unsafe {
+for c in src.chars() {
+dest_ptr.write(c);
+dest_ptr = dest_ptr.offset(1);
+}
+}
+}
+
+This function takes two arguments; a mutable 8-bit unsigned integer array, dest , and a String
+pointer, src . First, it checks that the count of the characters in the src argument is less than 200.
+Then using an unsafe code block, the characters are copied to the destination using a destination
+pointer.
+The 2nd option of the menu, Config Panel , checks if PIN_ENTRY_ENABLED is true, and if so,
+allows the user to reset the pin. But PIN_ENTRY_ENABLED is a constant and is set to false, so
+reseting the pin is not really an option.
+Regardless of the state of PIN_ENTRY_ENABLED though, present_config_panel() is called.
+present_config_panel() :
+fn present_config_panel(pin: &u32) {
+use std::process::{self, Stdio};
+// the pin strength isn't important since pin input is disabled
+if *pin != 123456 {
+println!("Invalid Pin. This incident will be reported.");
+return;
+}
+process::Command::new("/bin/sh")
+.stdin(Stdio::inherit())
+
+.stdout(Stdio::inherit())
+.output()
+.unwrap();
+}
+
+If the pin is not equal to 123456 , it immediately returns. In the case that it is, /bin/sh is called
+and we have a shell. We have to find a way to alter the pin to be 123456 in order to solve the
+challenge.
+
+Exploitation
+The unsafe code block hints that there is a buffer overflow present here. Researching what
+.chars().count() does and what's the difference between that and len() , we quickly find out
+
+that len() returns the number of bytes in a String, whereas .chars().count() returns the
+number of characters in a String. In a language like C these two things would be equal, but Rust
+treats characters a little differently. Characters in Rust are 4 bytes long to support all unicode
+characters.
+But the array we declared to store our statement stores 8-bit unsigned integer values, so we
+clearly have a buffer overflow.
+Since the pin is mutable and is initialized after our Feedback structure, it most likely sits after our
+buffer in virtual memory, and we can overflow it using the Complete Survey option.
+Let's run the binary with gdb , and check if our hypothesis is correct.
+Taking a look at main() :
+
+We set a breakpoint where the pin is first initialized, to obtain its address:
+
+Checking the address after the initialization, we see what we would expect:
+
+Now, let's give a statement of exactly 200 "A" characters, and check the pin afterwards:
+
+We successfully overwrote it! Playing around with the number of characters we send, we can
+deduce that we overwrite it after a padding of 102 4-byte characters.
+
+Solution
+Running the exploit agaist the remote instance:
+
+

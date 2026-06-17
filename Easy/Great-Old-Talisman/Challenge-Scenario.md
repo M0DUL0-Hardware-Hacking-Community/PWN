@@ -1,0 +1,1 @@
+Zombies are closing in from all directions, and our situation appears dire! Fortunately, we've come across this ancient and formidable Great Old Talisman, a source of hope and protection. However, it requires the infusion of a potent enchantment to unleash its true power.

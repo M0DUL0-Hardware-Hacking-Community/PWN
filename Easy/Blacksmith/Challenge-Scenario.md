@@ -1,0 +1,1 @@
+You are the only one who is capable of saving this town and bringing peace upon this land! You found a blacksmith who can create the most powerful weapon in the world! You can find him under the label "./flag.txt".
