@@ -1,0 +1,1 @@
+You have discovered an enigmatic computer system that has been dormant for a long time. The interface looks simple, but you suspect that there may be valuable information hidden within it. Can you find a way to access and extract the data?

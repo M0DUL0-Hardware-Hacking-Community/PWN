@@ -1,0 +1,1 @@
+Tired from exploring the endless mysteries of space, you need some rest and a welcome distraction. From extreme flaming kamikazes to dangleberry sours, Fox space bar has everything. Treat yourself like a king, but be careful! Don't drink and teleport!

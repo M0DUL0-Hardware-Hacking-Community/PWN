@@ -1,0 +1,1 @@
+We’ve gained access to Volnaya’s internal bank transaction system—a tool they use to meticulously transfer funds while effortlessly erasing transaction histories to avoid detection. Notably, they operate a single transaction channel to maintain strict control over their operations. Your challenge is to exploit this system and uncover the destination of their money transfers.

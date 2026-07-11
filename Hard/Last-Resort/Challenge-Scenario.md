@@ -1,0 +1,1 @@
+Welcome to our Resort! Although it's nothing fancy, we do allow you to resort as much as you would like. Are you going to play nice, or are you going to resort to trickery? In case every attempt fails, what is your last resort?

@@ -1,0 +1,1 @@
+An archaeologist was exploring the Amazon rainforest and suddenly he was stung by a bug in the arm. Later, doctors said he would lose the arm if they didn't find an antidote soon enough. Can you exploit the bug's DNA to find a cure?

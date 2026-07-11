@@ -1,0 +1,1 @@
+Humanity is under siege from a deadly disease spread by zombies. The BioShield Solutions Research Institute is tirelessly working to develop an antidote. Join their mission and become a hero in the fight to save humanity.

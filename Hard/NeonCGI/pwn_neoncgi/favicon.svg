@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect x="4" y="8" width="56" height="48" rx="4" ry="4" fill="#f5f5f5" stroke="#333" stroke-width="2"/>
+  
+  <!-- Log lines -->
+  <line x1="12" y1="20" x2="52" y2="20" stroke="#666" stroke-width="2"/>
+  <line x1="12" y1="28" x2="48" y2="28" stroke="#666" stroke-width="2"/>
+  <line x1="12" y1="36" x2="50" y2="36" stroke="#666" stroke-width="2"/>
+  <line x1="12" y1="44" x2="42" y2="44" stroke="#666" stroke-width="2"/>
+  
+  <!-- Timestamp indicators -->
+  <rect x="12" y="18" width="6" height="4" fill="#4a7baa"/>
+  <rect x="12" y="26" width="6" height="4" fill="#4a7baa"/>
+  <rect x="12" y="34" width="6" height="4" fill="#4a7baa"/>
+  <rect x="12" y="42" width="6" height="4" fill="#4a7baa"/>
+  
+  <!-- Lock icon for security -->
+  <rect x="42" y="6" width="16" height="14" rx="2" ry="2" fill="#ffd54f" stroke="#333" stroke-width="2"/>
+  <rect x="46" y="2" width="8" height="8" rx="4" ry="4" fill="#ffd54f" stroke="#333" stroke-width="2"/>
+</svg>
